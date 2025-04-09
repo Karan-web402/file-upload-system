@@ -1,8 +1,21 @@
 import express, { Request, Response } from 'express';
 import multer from 'multer';
+import * as path from 'path';
 
-// Create a Multer instance with a destination folder for file uploads
-const upload = multer({ dest: 'uploads/' });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now();
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage: storage });
+  
+
 
 class App {
   public express: express.Application;
@@ -18,14 +31,15 @@ class App {
   }
 
   private routes(): void {
-    // Define a POST route for file uploads using Multer middleware
-    this.express.post('/upload', upload.single('file'), (req: Request, res: Response) => {
-      if (!req.file) {
-        res.status(400).json({ error: 'No file uploaded' });
-        return
-      }
-      res.json({ message: 'File uploaded successfully' });
-    });
+    setTimeout(() => {
+      this.express.post('/upload', upload.single('file'), (req: Request, res: Response) => {
+        if (!req.file) {
+          res.status(400).json({ error: 'No file uploaded' });
+          return
+        }
+        res.json({ message: 'File uploaded successfully' });
+      });
+    },0)
   }
 }
 
